@@ -1,8 +1,16 @@
 from midiutil import MIDIFile
 import matplotlib 
 import matplotlib.pyplot as plt
-
 import numpy as np
+import os
+
+
+def createDirectory(directory):
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    except OSError:
+        print ('Error: Creating directory. ' +  directory)
 
 
 def createMidiFile(data_array, name):
@@ -13,7 +21,7 @@ def createMidiFile(data_array, name):
         int_pitch = int(round(pitch* 100)) 
         midiObj.addNote(0, 0, int_pitch,  i, 1, 100)
     
-    with open(name+".mid", "wb") as midiFile:
+    with open("midiFiles/" + name + ".mid", "wb") as midiFile:
         midiObj.writeFile(midiFile)
 
 
@@ -57,5 +65,6 @@ if __name__ == "__main__":
 
     createGraphs(clean_data, alert_data, True)
 
+    createDirectory("midiFiles")
     createMidiFile(clean_data, "clean_midi")
     createMidiFile(alert_data, "alert_midi")
