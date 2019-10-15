@@ -40,15 +40,15 @@ def createMidiFile(data_array, name):
         print("start of notes") 
         ###############  HIGH TONIC NOTE ########## 
         midiObj.addNote(0, 0, 48,  i, 1, 100)
-        midiObj.addPitchWheelEvent(0, 0, i, scale_and_randomize(pitch))
+        midiObj.addPitchWheelEvent(0, 0, i, scale_and_randomize(pitch, 7000))
 
         ############ DOMINANT NOTE ############ 
         midiObj.addNote(1, 0, 55,  i + 0.333, 1, 100)
-        midiObj.addPitchWheelEvent(1, 0, i, scale_and_randomize(pitch))
+        midiObj.addPitchWheelEvent(1, 0, i, scale_and_randomize(pitch, 6000))
 
         ###############  LOW TONIC NOTE ########## 
         midiObj.addNote(2, 0, 60,  i + 0.6666, 1, 100)
-        midiObj.addPitchWheelEvent(2, 0, i, scale_and_randomize(pitch))
+        # midiObj.addPitchWheelEvent(2, 0, i, scale_and_randomize(pitch))
 
     with open("midiFiles/" + name + ".mid", "wb") as midiFile:
         midiObj.writeFile(midiFile)
