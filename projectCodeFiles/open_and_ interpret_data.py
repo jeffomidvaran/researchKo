@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import random
 
 
 def createDirectory(directory):
@@ -13,14 +14,42 @@ def createDirectory(directory):
         print ('Error: Creating directory. ' +  directory)
 
 
+def scale_and_randomize(pitch, max_shift=8192): 
+    scaled_pitch = int(round(max_shift * pitch))  
+    #  randomly choose between positive and negative value 
+    random_bool = bool(random.getrandbits(1)) 
+    if(random_bool == False):
+        scaled_pitch = scaled_pitch * -1
+    print(scaled_pitch)
+    return scaled_pitch
+
+
 def createMidiFile(data_array, name):
-    midiObj = MIDIFile(1)  # create one track
-    midiObj.addTempo(0, 0, 120)
+    midiObj = MIDIFile(3)  # create one track
+    midiObj.addTempo(0, 0, 150)
+
+        # 0 = C-2 
+        # 12 = C-1 
+        # 24 = C-0 
+        # 36 = C1 
+        # 48 = C2 
+        # 60 = C3 
+        # 72 = C4 
 
     for i, pitch in enumerate(data_array):
-        int_pitch = int(round(pitch* 100)) 
-        midiObj.addNote(0, 0, int_pitch,  i, 1, 100)
-    
+        print("start of notes") 
+        ###############  HIGH TONIC NOTE ########## 
+        midiObj.addNote(0, 0, 48,  i, 1, 100)
+        midiObj.addPitchWheelEvent(0, 0, i, scale_and_randomize(pitch))
+
+        ############ DOMINANT NOTE ############ 
+        midiObj.addNote(1, 0, 55,  i + 0.333, 1, 100)
+        midiObj.addPitchWheelEvent(1, 0, i, scale_and_randomize(pitch))
+
+        ###############  LOW TONIC NOTE ########## 
+        midiObj.addNote(2, 0, 60,  i + 0.6666, 1, 100)
+        midiObj.addPitchWheelEvent(2, 0, i, scale_and_randomize(pitch))
+
     with open("midiFiles/" + name + ".mid", "wb") as midiFile:
         midiObj.writeFile(midiFile)
 
@@ -63,7 +92,7 @@ if __name__ == "__main__":
     clean_data = createFloatArray(clean_stream)
     alert_data = createFloatArray(alert_stream)
 
-    createGraphs(clean_data, alert_data, True)
+    # createGraphs(clean_data, alert_data, True)
 
     createDirectory("midiFiles")
     createMidiFile(clean_data, "clean_midi")
