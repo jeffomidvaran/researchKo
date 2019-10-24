@@ -4,6 +4,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import random
+import itertools
+
+# 0 = C-2 
+# 12 = C-1 
+# 24 = C-0 
+# 36 = C1 
+# 48 = C2 
+# 60 = C3 
+# 72 = C4 
+
+WHOLE_NOTE         = 4
+HALF_NOTE          = 2
+QUARTER_NOTE       = 1
+EIGHTH_NOTE        = 1/2
+SIXTEEN_NOTE       = 1/4
+THIRTY_SECOND_NOTE = 1/8
 
 
 def createDirectory(directory):
@@ -16,42 +32,8 @@ def createDirectory(directory):
 
 def scale_and_randomize(pitch, max_shift=8192): 
     scaled_pitch = int(round(max_shift * pitch))  
-    #  randomly choose between positive and negative value 
-    random_bool = bool(random.getrandbits(1)) 
-    if(random_bool == False):
-        scaled_pitch = scaled_pitch * -1
-    print(scaled_pitch)
-    return scaled_pitch
-
-
-def createMidiFile(data_array, name):
-    midiObj = MIDIFile(3)  # create one track
-    midiObj.addTempo(0, 0, 150)
-
-        # 0 = C-2 
-        # 12 = C-1 
-        # 24 = C-0 
-        # 36 = C1 
-        # 48 = C2 
-        # 60 = C3 
-        # 72 = C4 
-
-    for i, pitch in enumerate(data_array):
-        print("start of notes") 
-        ###############  HIGH TONIC NOTE ########## 
-        midiObj.addNote(0, 0, 48,  i, 1, 100)
-        midiObj.addPitchWheelEvent(0, 0, i, scale_and_randomize(pitch, 7000))
-
-        ############ DOMINANT NOTE ############ 
-        midiObj.addNote(1, 0, 55,  i + 0.333, 1, 100)
-        midiObj.addPitchWheelEvent(1, 0, i, scale_and_randomize(pitch, 6000))
-
-        ###############  LOW TONIC NOTE ########## 
-        midiObj.addNote(2, 0, 60,  i + 0.6666, 1, 100)
-        # midiObj.addPitchWheelEvent(2, 0, i, scale_and_randomize(pitch))
-
-    with open("midiFiles/" + name + ".mid", "wb") as midiFile:
-        midiObj.writeFile(midiFile)
+    result = random.randint(-scaled_pitch, scaled_pitch)
+    return result
 
 
 def createFloatArray(file):
@@ -85,6 +67,174 @@ def createGraphs(clean_data, alert_data, create_png):
     plt.show()
 
 
+def CreateDroneMidiFile(data_array, name): 
+    print("creating Drone " + name + " midi file")
+    midiObj = MIDIFile(3)  # create one track
+    midiObj.addTempo(0, 0, 150)
+    
+    #               track, channel, pitch, time      , duration      , volume
+    midiObj.addNote(0    , 0      , 48   , 0         ,len(data_array)/4, 100 )
+    midiObj.addNote(1    , 0      , 55   , 0         ,len(data_array)/4, 100 )
+    midiObj.addNote(2    , 0      , 60   , 0         ,len(data_array)/4, 100 )
+
+    for i, pitch in enumerate(data_array):
+        forward =  i/4
+        ######## HIGH TONIC NOTE PITCHBEND #################### 
+        midiObj.addPitchWheelEvent(0, 0, forward, scale_and_randomize(pitch, 7000))
+
+        ######## DOMINANT NOTE PITCHBEND ###################### 
+        midiObj.addPitchWheelEvent(1, 0, forward, scale_and_randomize(pitch, 6000))
+
+        #######  LOW TONIC NOTE PITCHBEND #####################
+        # midiObj.addPitchWheelEvent(2, 0, note_division, scale_and_randomize(pitch))
+
+    with open("midiFiles/" + name + ".mid", "wb") as midiFile:
+        midiObj.writeFile(midiFile)
+
+
+
+def createArpegiatedMidiFile(data_array, name):
+    midiObj = MIDIFile(3)  # create one track
+    midiObj.addTempo(0, 0, 150)
+
+    for i, pitch in enumerate(data_array):
+        forward = i*2
+        ######## HIGH TONIC NOTE #################### 
+        #               track, channel, pitch, time      , duration    , volume
+        midiObj.addNote(0    , 0      , 48   ,(forward + i)/4  , SIXTEEN_NOTE, 100)
+        midiObj.addPitchWheelEvent(0, 0, (forward +i)/4, scale_and_randomize(pitch, 7000))
+
+        ######## DOMINANT NOTE ###################### 
+        midiObj.addNote(1, 0, 55, (forward +i + 1)/4, SIXTEEN_NOTE, 100)
+        midiObj.addPitchWheelEvent(1, 0, (forward + i + 1) /4, scale_and_randomize(pitch, 6000))
+
+        #######  LOW TONIC NOTE #####################
+        midiObj.addNote(2, 0, 60, (forward + i + 2)/4, SIXTEEN_NOTE, 100)
+        # midiObj.addPitchWheelEvent(2, 0, note_division, scale_and_randomize(pitch))
+    
+    with open("midiFiles/" + name + ".mid", "wb") as midiFile:
+        midiObj.writeFile(midiFile)
+
+
+
+def createMelody(melody_pitches, melody_rhythm, clean_data, alert_dat, midiObj):
+    if(len(melody_pitches) != len(melody_rhythm)):
+            print("ERROR: Number of pitches and assigned rhythms is not equal.")
+            raise Exception
+
+    iter_melody_data = clean_data.__iter__()
+    
+    note_position = 0  # 1 == sixteenth note
+
+    for data_point in iter_melody_data:
+
+        if(data_point == 1):
+            melody_pitches_iter = melody_pitches.__iter__()
+            melody_rhythm_iter = melody_rhythm.__iter__()
+
+            for i in range(len(melody_pitches)):
+                note_duration = melody_rhythm_iter.__next__()
+
+                midiObj.addNote(
+                                2,  # track
+                                0,  # channel
+                                melody_pitches_iter.__next__(), # pitch 
+                                note_position/4,  # time
+                                note_duration, # duration
+                                100   # volume
+                )
+
+                if(note_duration == SIXTEEN_NOTE): 
+                    note_position += 1
+                    iter_melody_data.__next__()
+                elif(note_duration == EIGHTH_NOTE):
+                    skip = 2
+                    note_position += skip
+                    for _ in range(skip): iter_melody_data.__next__()
+                elif(note_duration == QUARTER_NOTE):
+                    skip = 4
+                    note_position += skip
+                    for _ in range(skip): iter_melody_data.__next__()
+                elif(note_duration == HALF_NOTE):
+                    skip = 8
+                    note_position += skip
+                    for _ in range(skip): iter_melody_data.__next__()
+                elif(note_duration == WHOLE_NOTE):
+                    skip = 16
+                    note_position += skip
+                    for _ in range(skip): iter_melody_data.__next__()
+        else: 
+            note_position+= 1
+    return midiObj
+
+
+
+def create_midi_clean_rythmic_dirty_melody(clean_data, alert_data, name):
+    midiObj = MIDIFile(3)  # create one track
+    midiObj.addTempo(0, 0, 150)
+
+    ####################################################################
+    ##################  CREATE RHYTHM ##################################  
+    ####################################################################
+    
+    clean_rhythm_length = round(len(clean_data)/16)
+    note_cutoff = 0.05
+
+    for i in range(clean_rhythm_length):
+        forward = i * 4
+        ######## HIGH TONIC NOTE #################### 
+        #               track, channel, pitch, time      , duration    , volume
+        midiObj.addNote(0    , 0      , 48   , forward  , WHOLE_NOTE - note_cutoff, 100)
+
+        ######## DOMINANT NOTE ###################### 
+        midiObj.addNote(1, 0, 55, forward, WHOLE_NOTE - note_cutoff, 100)
+
+        #######  LOW TONIC NOTE #####################
+        midiObj.addNote(2, 0, 36, forward, WHOLE_NOTE - note_cutoff, 100)
+
+
+    ####################################################################
+    ##################  CREATE PTICH BEND ##############################  
+    ####################################################################
+   
+    
+    for i, data_point in enumerate(clean_data):
+        note_position = i/4
+        ######## HIGH TONIC NOTE PITCHBEND #################### 
+        midiObj.addPitchWheelEvent(0, 0, note_position, scale_and_randomize(data_point))
+
+        ######## DOMINANT NOTE PITCHBEND ###################### 
+        midiObj.addPitchWheelEvent(1, 0, note_position, scale_and_randomize(data_point))
+
+        #######  LOW TONIC NOTE PITCHBEND #####################
+        midiObj.addPitchWheelEvent(2, 0, note_position, scale_and_randomize(data_point))
+
+    ####################################################################
+    ##################  CREATE MELODY ##################################  
+    ####################################################################
+   
+
+    melody_pitches = [
+                       77,
+                       84,
+                       81,79,77,74,
+                       75,73
+    ]
+
+    melody_rhythm = [
+                       QUARTER_NOTE,
+                       QUARTER_NOTE,
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE, 
+                       EIGHTH_NOTE,EIGHTH_NOTE,   
+    ]
+
+    midiObj = createMelody(melody_pitches, melody_rhythm, clean_data, alert_data, midiObj)
+
+    with open("midiFiles/" + name + ".mid", "wb") as midiFile:
+        midiObj.writeFile(midiFile)
+
+
+
 if __name__ == "__main__":
     clean_stream = open("clean_stream.txt", "r")
     alert_stream = open("alert_stream.txt", "r")
@@ -95,5 +245,10 @@ if __name__ == "__main__":
     # createGraphs(clean_data, alert_data, True)
 
     createDirectory("midiFiles")
-    createMidiFile(clean_data, "clean_midi")
-    createMidiFile(alert_data, "alert_midi")
+    create_midi_clean_rythmic_dirty_melody(clean_data, alert_data,
+                                            "clean_rhythm_alert_melody") 
+
+    # CreateDroneMidiFile(clean_data, "CleanDrone")
+    # createMidiFile(clean_data, "clean_arpeg", True)
+    # createMidiFile(clean_data, "clean", False)
+    # createMidiFile(alert_data, "alert_midi", False)
