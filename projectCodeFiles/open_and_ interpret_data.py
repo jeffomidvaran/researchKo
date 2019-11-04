@@ -177,6 +177,7 @@ def create_midi_clean_rythmic_dirty_melody(clean_data, alert_data, name, rhythm 
     ####################################################################
     ##################  CREATE RHYTHM ##################################  
     ####################################################################
+
     if( rhythm == True):    
         clean_rhythm_length = round(len(clean_data)/16)
         note_cutoff = 0.05
@@ -192,6 +193,10 @@ def create_midi_clean_rythmic_dirty_melody(clean_data, alert_data, name, rhythm 
 
             #######  LOW TONIC NOTE #####################
             midiObj.addNote(2, 0, 36, forward, WHOLE_NOTE - note_cutoff, 100)
+
+    ####################################################################
+    ##################  CREATE DRONE ###################################  
+    ####################################################################
 
     else: 
             duration = len(clean_data)/4
@@ -245,6 +250,8 @@ def create_midi_clean_rythmic_dirty_melody(clean_data, alert_data, name, rhythm 
 
     with open("midiFiles/" + name + ".mid", "wb") as midiFile:
         midiObj.writeFile(midiFile)
+
+
 
 
 
