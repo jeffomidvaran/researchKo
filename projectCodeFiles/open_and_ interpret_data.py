@@ -18,7 +18,7 @@ C4 =  72
 
 notes = {
     "c2n" , 0,
-    "cs2n", 1 ,
+    "cs2n", 1,
     "d2n" , 2,
     "ds2n", 3,
     "e2n" , 4,
@@ -32,7 +32,7 @@ notes = {
     
     
     "c1n" , 12,
-    "cs1n", 13 ,
+    "cs1n", 13,
     "d1n" , 14,
     "ds1n", 15,
     "e1n" , 16,
@@ -46,7 +46,7 @@ notes = {
     
      
     "c0" , 24,
-    "cs0", 25 ,
+    "cs0", 25,
     "d0" , 26,
     "ds0", 27,
     "e0" , 28,
@@ -59,7 +59,7 @@ notes = {
     "b0" , 35,
       
     "c1" , 36,
-    "cs1", 37 ,
+    "cs1", 37,
     "d1" , 38,
     "ds1", 39,
     "e1" , 40,
@@ -72,7 +72,7 @@ notes = {
     "b1" , 47,
      
     "c2" , 48,
-    "cs2", 49 ,
+    "cs2", 49,
     "d2" , 50,
     "ds2", 51,
     "e2" , 52,
@@ -86,7 +86,7 @@ notes = {
 
     
     "c3" , 60,
-    "cs3", 61 ,
+    "cs3", 61,
     "d3" , 62,
     "ds3", 63,
     "e3" , 64,
@@ -99,7 +99,7 @@ notes = {
     "b3" , 71,
      
     "c4" , 72,
-    "cs4", 73 ,
+    "cs4", 73,
     "d4" , 74,
     "ds4", 75,
     "e4" , 76,
@@ -111,7 +111,7 @@ notes = {
     "as4", 82,
       
     "c5" , 84,
-    "cs5", 85 ,
+    "cs5", 85,
     "d5" , 86,
     "ds5", 87,
     "e5" , 88,
@@ -281,7 +281,7 @@ def createMelody(melody_pitches, melody_rhythm, clean_data, alert_dat, midiObj):
 
 
 
-def create_midi_clean_rythmic_dirty_melody(clean_data, alert_data, name, rhythm = False):
+def create_midi_with_melody(clean_data, alert_data, name, rhythm = False):
     midiObj = MIDIFile(3)  # create one track
     midiObj.addTempo(0, 0, 150)
 
@@ -376,8 +376,10 @@ if __name__ == "__main__":
     # createGraphs(clean_data, alert_data, True)
 
     createDirectory("midiFiles")
-    create_midi_clean_rythmic_dirty_melody(clean_data, alert_data,
-                                            "clean_rhythm_alert_melody", False) 
+    create_midi_with_melody(clean_data, 
+                            alert_data,
+                            "clean_rhythm_alert_melody", 
+                            False) 
 
     # CreateDroneMidiFile(clean_data, "CleanDrone")
     # createMidiFile(clean_data, "clean_arpeg", True)
