@@ -362,9 +362,6 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
         midiObj.writeFile(midiFile)
 
 
-
-
-
 if __name__ == "__main__":
     clean_stream = open("clean_stream.txt", "r")
     alert_stream = open("alert_stream.txt", "r")
@@ -384,8 +381,3 @@ if __name__ == "__main__":
                             alert_data,
                             "clean_rhythm_alert_melody", 
                             True) 
-
-    # CreateDroneMidiFile(clean_data, "CleanDrone")
-    # createMidiFile(clean_data, "clean_arpeg", True)
-    # createMidiFile(clean_data, "clean", False)
-    # createMidiFile(alert_data, "alert_midi", False)
