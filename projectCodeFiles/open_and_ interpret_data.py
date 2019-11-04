@@ -5,6 +5,7 @@ import numpy as np
 import os
 import random
 import itertools
+import midi2audio
 
 # 0 = C-2 
 # 12 = C-1 
@@ -169,28 +170,40 @@ def createMelody(melody_pitches, melody_rhythm, clean_data, alert_dat, midiObj):
 
 
 
-def create_midi_clean_rythmic_dirty_melody(clean_data, alert_data, name):
+def create_midi_clean_rythmic_dirty_melody(clean_data, alert_data, name, rhythm = False):
     midiObj = MIDIFile(3)  # create one track
     midiObj.addTempo(0, 0, 150)
 
     ####################################################################
     ##################  CREATE RHYTHM ##################################  
     ####################################################################
-    
-    clean_rhythm_length = round(len(clean_data)/16)
-    note_cutoff = 0.05
+    if( rhythm == True):    
+        clean_rhythm_length = round(len(clean_data)/16)
+        note_cutoff = 0.05
 
-    for i in range(clean_rhythm_length):
-        forward = i * 4
-        ######## HIGH TONIC NOTE #################### 
-        #               track, channel, pitch, time      , duration    , volume
-        midiObj.addNote(0    , 0      , 48   , forward  , WHOLE_NOTE - note_cutoff, 100)
+        for i in range(clean_rhythm_length):
+            forward = i * 4
+            ######## HIGH TONIC NOTE #################### 
+            #               track, channel, pitch, time      , duration    , volume
+            midiObj.addNote(0    , 0      , 48   , forward  , WHOLE_NOTE - note_cutoff, 100)
 
-        ######## DOMINANT NOTE ###################### 
-        midiObj.addNote(1, 0, 55, forward, WHOLE_NOTE - note_cutoff, 100)
+            ######## DOMINANT NOTE ###################### 
+            midiObj.addNote(1, 0, 55, forward, WHOLE_NOTE - note_cutoff, 100)
 
-        #######  LOW TONIC NOTE #####################
-        midiObj.addNote(2, 0, 36, forward, WHOLE_NOTE - note_cutoff, 100)
+            #######  LOW TONIC NOTE #####################
+            midiObj.addNote(2, 0, 36, forward, WHOLE_NOTE - note_cutoff, 100)
+
+    else: 
+            duration = len(clean_data)/4
+            ######## HIGH TONIC NOTE #################### 
+            #               track, channel, pitch, time      , duration    , volume
+            midiObj.addNote(0    , 0      , 48   , 0  , duration, 100)
+
+            ######## DOMINANT NOTE ###################### 
+            midiObj.addNote(1, 0, 55, 0, duration, 100)
+
+            #######  LOW TONIC NOTE #####################
+            midiObj.addNote(2, 0, 36, 0, duration, 100)
 
 
     ####################################################################
@@ -246,7 +259,7 @@ if __name__ == "__main__":
 
     createDirectory("midiFiles")
     create_midi_clean_rythmic_dirty_melody(clean_data, alert_data,
-                                            "clean_rhythm_alert_melody") 
+                                            "clean_rhythm_alert_melody", False) 
 
     # CreateDroneMidiFile(clean_data, "CleanDrone")
     # createMidiFile(clean_data, "clean_arpeg", True)
