@@ -7,6 +7,12 @@ import random
 import itertools
 import midi2audio
 
+WHOLE_NOTE         = 4
+HALF_NOTE          = 2
+QUARTER_NOTE       = 1
+EIGHTH_NOTE        = 1/2
+SIXTEEN_NOTE       = 1/4
+THIRTY_SECOND_NOTE = 1/8
 
 note = {
     "c-2" :0 ,
@@ -115,13 +121,12 @@ note = {
     
     }
 
+def random_offset(start = -0.01, end = 0.01):
+    return round(random.uniform(start,end),3)
 
-WHOLE_NOTE         = 4
-HALF_NOTE          = 2
-QUARTER_NOTE       = 1
-EIGHTH_NOTE        = 1/2
-SIXTEEN_NOTE       = 1/4
-THIRTY_SECOND_NOTE = 1/8
+def random_velocity(low = 100,high = 127):
+    return random.randint(low, high)
+
 
 
 def createDirectory(directory):
@@ -134,8 +139,11 @@ def createDirectory(directory):
 
 def scale_and_randomize(pitch, max_shift=8192): 
     scaled_pitch = int(round(max_shift * pitch))  
-    result = random.randint(-scaled_pitch, scaled_pitch)
-    return result
+    return random.randint(-scaled_pitch, scaled_pitch)
+
+
+def scale(pitch, max_shift=8192): 
+    return int(round(max_shift * pitch))  
 
 
 def createFloatArray(file):
@@ -194,7 +202,6 @@ def CreateDroneMidiFile(data_array, name):
         midiObj.writeFile(midiFile)
 
 
-
 def createArpegiatedMidiFile(data_array, name):
     midiObj = MIDIFile(3)  # create one track
     midiObj.addTempo(0, 0, 150)
@@ -219,12 +226,12 @@ def createArpegiatedMidiFile(data_array, name):
 
 
 
-def createMelody(melody_pitches, melody_rhythm, clean_data, alert_dat, midiObj):
+def createMelody(melody_pitches, melody_rhythm, data, midiObj, track):
     if(len(melody_pitches) != len(melody_rhythm)):
             print("ERROR: Number of pitches and assigned rhythms is not equal.")
             raise Exception
 
-    iter_melody_data = clean_data.__iter__()
+    iter_melody_data = data.__iter__()
     
     note_position = 0  # 1 == sixteenth note
 
@@ -238,12 +245,12 @@ def createMelody(melody_pitches, melody_rhythm, clean_data, alert_dat, midiObj):
                 note_duration = melody_rhythm_iter.__next__()
 
                 midiObj.addNote(
-                                2,  # track
+                                track,  # track
                                 0,  # channel
                                 melody_pitches_iter.__next__(), # pitch 
-                                note_position/4,  # time
+                                note_position/4 + random_offset(),  # time
                                 note_duration, # duration
-                                100   # volume
+                                random_velocity()   # volume
                 )
 
                 if(note_duration == SIXTEEN_NOTE): 
@@ -272,7 +279,7 @@ def createMelody(melody_pitches, melody_rhythm, clean_data, alert_dat, midiObj):
 
 
 def create_midi_with_melody(clean_data, alert_data, name, rhythm):
-    midiObj = MIDIFile(3)  # create one track
+    midiObj = MIDIFile(4)  # create one track
     midiObj.addTempo(0, 0, 150)
 
     ####################################################################
@@ -310,15 +317,10 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
 
     else: 
             duration = len(clean_data)/4
-            ######## HIGH TONIC NOTE #################### 
             #               track, channel, pitch, time      , duration    , volume
-            midiObj.addNote(0    , 0      , 48   , 0  , duration, 100)
-
-            ######## DOMINANT NOTE ###################### 
-            midiObj.addNote(1, 0, 55, 0, duration, 100)
-
-            #######  LOW TONIC NOTE #####################
-            midiObj.addNote(2, 0, 36, 0, duration, 100)
+            midiObj.addNote(0    , 0      , note["c2"]   , 0  , duration, 100)
+            midiObj.addNote(1, 0, note["g2"], 0, duration, 100)
+            midiObj.addNote(2, 0, note["c1"], 0, duration, 100)
 
 
     ####################################################################
@@ -329,13 +331,10 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
     for i, data_point in enumerate(clean_data):
         note_position = i/4
         ######## HIGH TONIC NOTE PITCHBEND #################### 
-        midiObj.addPitchWheelEvent(0, 0, note_position, scale_and_randomize(data_point))
+        #                          track, channel, time         , pitchWheelValue
+        midiObj.addPitchWheelEvent(0    , 0      , note_position, scale(data_point))
+        midiObj.addPitchWheelEvent(1    , 0      , note_position, scale(data_point))
 
-        ######## DOMINANT NOTE PITCHBEND ###################### 
-        midiObj.addPitchWheelEvent(1, 0, note_position, scale_and_randomize(data_point))
-
-        #######  LOW TONIC NOTE PITCHBEND #####################
-        midiObj.addPitchWheelEvent(2, 0, note_position, scale_and_randomize(data_point))
 
     ####################################################################
     ##################  CREATE MELODY ##################################  
@@ -343,10 +342,10 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
    
 
     melody_pitches = [
-                       77,
-                       84,
-                       81,79,77,74,
-                       75,73
+                       note["f4"],
+                       note["c5"],
+                       note["cs5"], note["g4"], note["f4"], note["d4"],
+                       note["ds4"], note["cs4"]
     ]
 
     melody_rhythm = [
@@ -356,13 +355,14 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
                        EIGHTH_NOTE,EIGHTH_NOTE,   
     ]
 
-    midiObj = createMelody(melody_pitches, melody_rhythm, clean_data, alert_data, midiObj)
+    midiObj = createMelody(melody_pitches, melody_rhythm, alert_data, midiObj, 3)
 
     with open("midiFiles/" + name + ".mid", "wb") as midiFile:
         midiObj.writeFile(midiFile)
 
 
 if __name__ == "__main__":
+
     clean_stream = open("clean_stream.txt", "r")
     alert_stream = open("alert_stream.txt", "r")
 
@@ -377,7 +377,3 @@ if __name__ == "__main__":
                             "clean_drone_alert_melody", 
                             False) 
 
-    create_midi_with_melody(clean_data, 
-                            alert_data,
-                            "clean_rhythm_alert_melody", 
-                            True) 
