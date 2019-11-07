@@ -139,7 +139,8 @@ def createDirectory(directory):
 
 def scale_and_randomize(pitch, max_shift=8192): 
     scaled_pitch = int(round(max_shift * pitch))  
-    return random.randint(-scaled_pitch, scaled_pitch)
+    # return random.randint(-scaled_pitch, scaled_pitch)
+    return random.randint(0, scaled_pitch)
 
 
 def scale(pitch, max_shift=8192): 
@@ -332,8 +333,9 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
         note_position = i/4
         ######## HIGH TONIC NOTE PITCHBEND #################### 
         #                          track, channel, time         , pitchWheelValue
-        midiObj.addPitchWheelEvent(0    , 0      , note_position, scale(data_point))
-        midiObj.addPitchWheelEvent(1    , 0      , note_position, scale(data_point))
+        midiObj.addPitchWheelEvent(0    , 0      , note_position, scale_and_randomize(data_point))
+        midiObj.addPitchWheelEvent(1    , 0      , note_position, scale_and_randomize(data_point))
+        midiObj.addPitchWheelEvent(2    , 0      , note_position, scale_and_randomize(data_point))
 
 
     ####################################################################
@@ -342,13 +344,15 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
    
 
     melody_pitches = [
-                       note["f4"],
+                       note["fs4"],
+                       note["gs4"],
                        note["c5"],
                        note["cs5"], note["g4"], note["f4"], note["d4"],
                        note["ds4"], note["cs4"]
     ]
 
     melody_rhythm = [
+                       QUARTER_NOTE,
                        QUARTER_NOTE,
                        QUARTER_NOTE,
                        SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE, 
