@@ -14,6 +14,10 @@ EIGHTH_NOTE        = 1/2
 SIXTEEN_NOTE       = 1/4
 THIRTY_SECOND_NOTE = 1/8
 
+previous_data_point = 0.0
+pitch_bend_ceiling = 0.0
+pitch_bend_ceiling_positive = True
+
 note = {
     "c-2" :0 ,
     "cs-2":1 ,
@@ -105,6 +109,7 @@ note = {
     "gs4" :80,
     "a4"  :81,
     "as4" :82,
+    "b4"  :83,
       
     "c5"  :84,
     "cs5" :85,
@@ -118,6 +123,19 @@ note = {
     "a5"  :93,
     "as5" :94,
     "b5"  :95,
+       
+    "c6"  :96,
+    "cs6" :97,
+    "d6"  :98,
+    "ds6" :99,
+    "e6"  :100,
+    "f6"  :101,
+    "fs6" :102,
+    "g6"  :103,
+    "gs6" :104,
+    "a6"  :105,
+    "as6" :106,
+    "b6"  :107,
     
     }
 
@@ -137,14 +155,41 @@ def createDirectory(directory):
         print ('Error: Creating directory. ' +  directory)
 
 
-def scale_and_randomize(pitch, max_shift=8192): 
-    scaled_pitch = int(round(max_shift * pitch))  
-    # return random.randint(-scaled_pitch, scaled_pitch)
-    return random.randint(0, scaled_pitch)
+def scale_and_randomize(data_point, max_shift=8192): 
+    scaled_pitch = int(round(max_shift * data_point))  
+    return random.randint(-scaled_pitch, scaled_pitch)
 
 
-def scale(pitch, max_shift=8192): 
-    return int(round(max_shift * pitch))  
+def scale_and_limit(data_point, max_shift=8192): 
+    ''' 
+        for each change from zero to non-zero
+        choose a randomized scalar value to limit the range 
+        of the pitch bend.
+    '''
+    global previous_data_point
+    global pitch_bend_ceiling
+    global pitch_bend_ceiling_positive
+
+
+    # find zero to positive value points
+    if(previous_data_point == 0.0 and data_point > 0.0):
+        pitch_bend_ceiling = int(round(max_shift * random.uniform(-1.0, 1.0)))
+        if(pitch_bend_ceiling < 0):
+            pitch_bend_ceiling_positive == False
+
+    # pitch bend goes back to zero
+    elif(previous_data_point > 0 and data_point == 0.0):
+        pitch_bend_ceiling = 0.0
+
+
+
+    scaled_pitch = int(round(pitch_bend_ceiling * data_point))
+
+    if(pitch_bend_ceiling_positive < 0):
+        scaled_pitch *= -1
+
+    previous_data_point = data_point 
+    return scaled_pitch
 
 
 def createFloatArray(file):
@@ -333,9 +378,9 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
         note_position = i/4
         ######## HIGH TONIC NOTE PITCHBEND #################### 
         #                          track, channel, time         , pitchWheelValue
-        midiObj.addPitchWheelEvent(0    , 0      , note_position, scale_and_randomize(data_point))
-        midiObj.addPitchWheelEvent(1    , 0      , note_position, scale_and_randomize(data_point))
-        midiObj.addPitchWheelEvent(2    , 0      , note_position, scale_and_randomize(data_point))
+        midiObj.addPitchWheelEvent(0    , 0      , note_position, scale_and_limit(data_point))
+        midiObj.addPitchWheelEvent(1    , 0      , note_position, scale_and_limit(data_point))
+        midiObj.addPitchWheelEvent(2    , 0      , note_position, scale_and_limit(data_point))
 
 
     ####################################################################
@@ -344,19 +389,18 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
    
 
     melody_pitches = [
-                       note["fs4"],
-                       note["gs4"],
-                       note["c5"],
-                       note["cs5"], note["g4"], note["f4"], note["d4"],
-                       note["ds4"], note["cs4"]
+                       note["c5"],note["c5"], note["c5"],note["c5"], 
+                       note["c5"],note["c5"], note["c5"],note["c5"], 
+                       note["c6"],note["c6"], note["c6"],note["c6"], 
+                       note["c6"],note["c6"], note["c6"],note["c6"], 
+
     ]
 
     melody_rhythm = [
-                       QUARTER_NOTE,
-                       QUARTER_NOTE,
-                       QUARTER_NOTE,
-                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE, 
-                       EIGHTH_NOTE,EIGHTH_NOTE,   
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
     ]
 
     midiObj = createMelody(melody_pitches, melody_rhythm, alert_data, midiObj, 3)
@@ -366,7 +410,6 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
 
 
 if __name__ == "__main__":
-
     clean_stream = open("clean_stream.txt", "r")
     alert_stream = open("alert_stream.txt", "r")
 
