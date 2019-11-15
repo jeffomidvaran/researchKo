@@ -137,6 +137,18 @@ note = {
     "as6" :106,
     "b6"  :107,
     
+    "c7"  :108,
+    "cs7" :109,
+    "d7"  :110,
+    "ds7" :111,
+    "e7"  :112,
+    "f7"  :113,
+    "fs7" :114,
+    "g7"  :115,
+    "gs7" :116,
+    "a7"  :117,
+    "as7" :118,
+    "b7"  :119,
     }
 
 def random_offset(start = -0.01, end = 0.01):
@@ -181,10 +193,8 @@ def scale_and_limit(data_point, max_shift=8192):
     elif(previous_data_point > 0 and data_point == 0.0):
         pitch_bend_ceiling = 0.0
 
-
-
+    
     scaled_pitch = int(round(pitch_bend_ceiling * data_point))
-
     if(pitch_bend_ceiling_positive < 0):
         scaled_pitch *= -1
 
@@ -388,22 +398,52 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
     ####################################################################
    
 
-    melody_pitches = [
+    melody_pitches1 = [
                        note["c5"],note["c5"], note["c5"],note["c5"], 
                        note["c5"],note["c5"], note["c5"],note["c5"], 
                        note["c6"],note["c6"], note["c6"],note["c6"], 
                        note["c6"],note["c6"], note["c6"],note["c6"], 
+    ]
+
+    melody_rhythm1 = [
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
+    ]
+   
+
+    melody_pitches2 = [
+                       note["c5"], note["cs5"], note["d5"], note["ds5"], note["e5"], note["f5"], note["fs5"], 
+                       note["c6"], note["cs6"], note["d6"], note["ds6"], note["e6"], note["f6"], note["fs6"], 
+                       note["c5"], note["cs5"], note["d5"], note["ds5"], note["e5"], note["f5"], note["fs5"], 
+                       note["c6"], note["cs6"], note["d6"], note["ds6"], note["e6"], note["f6"], note["fs6"], 
+    ]
+
+    melody_rhythm2 = [
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE, SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE, SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,  
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE, SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,  
+                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE, SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,  
+    ]
+
+
+
+    melody_pitches3 = [
+                       note["c5"], note["fs5"], note["cs6"], note["gs6"], note["ds7"], note["as7"], 
+                       note["ds7"], note["gs6"], note["cs6"], note["gs5"], note["c5"], note["f4"]
+    ]
+
+    melody_rhythm3 = [
+                       EIGHTH_NOTE,EIGHTH_NOTE,EIGHTH_NOTE,EIGHTH_NOTE,EIGHTH_NOTE,EIGHTH_NOTE, 
+                       EIGHTH_NOTE,EIGHTH_NOTE,EIGHTH_NOTE,EIGHTH_NOTE,EIGHTH_NOTE, EIGHTH_NOTE, 
 
     ]
 
-    melody_rhythm = [
-                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
-                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
-                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
-                       SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,SIXTEEN_NOTE,   
-    ]
 
-    midiObj = createMelody(melody_pitches, melody_rhythm, alert_data, midiObj, 3)
+    midiObj = createMelody(melody_pitches1, melody_rhythm1, alert_data, midiObj, 3)
+    # midiObj = createMelody(melody_pitches2, melody_rhythm2, alert_data, midiObj, 3)
+    # midiObj = createMelody(melody_pitches3, melody_rhythm3, alert_data, midiObj, 3)
 
     with open("midiFiles/" + name + ".mid", "wb") as midiFile:
         midiObj.writeFile(midiFile)
@@ -421,6 +461,6 @@ if __name__ == "__main__":
     createDirectory("midiFiles")
     create_midi_with_melody(clean_data, 
                             alert_data,
-                            "clean_drone_alert_melody", 
+                            "melody1", 
                             False) 
 
