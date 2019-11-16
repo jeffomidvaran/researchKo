@@ -14,9 +14,6 @@ EIGHTH_NOTE        = 1/2
 SIXTEEN_NOTE       = 1/4
 THIRTY_SECOND_NOTE = 1/8
 
-previous_data_point = 0.0
-pitch_bend_ceiling = 0.0
-pitch_bend_ceiling_positive = True
 
 note = {
     "c-2" :0 ,
@@ -171,35 +168,6 @@ def scale_and_randomize(data_point, max_shift=8192):
     scaled_pitch = int(round(max_shift * data_point))  
     return random.randint(-scaled_pitch, scaled_pitch)
 
-
-def scale_and_limit(data_point, max_shift=8192): 
-    ''' 
-        for each change from zero to non-zero
-        choose a randomized scalar value to limit the range 
-        of the pitch bend.
-    '''
-    global previous_data_point
-    global pitch_bend_ceiling
-    global pitch_bend_ceiling_positive
-
-
-    # find zero to positive value points
-    if(previous_data_point == 0.0 and data_point > 0.0):
-        pitch_bend_ceiling = int(round(max_shift * random.uniform(-1.0, 1.0)))
-        if(pitch_bend_ceiling < 0):
-            pitch_bend_ceiling_positive == False
-
-    # pitch bend goes back to zero
-    elif(previous_data_point > 0 and data_point == 0.0):
-        pitch_bend_ceiling = 0.0
-
-    
-    scaled_pitch = int(round(pitch_bend_ceiling * data_point))
-    if(pitch_bend_ceiling_positive < 0):
-        scaled_pitch *= -1
-
-    previous_data_point = data_point 
-    return scaled_pitch
 
 
 def createFloatArray(file):
@@ -384,13 +352,26 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
     ####################################################################
    
     
+    pitch_bend_ceiling = [0,0,0]
+    max_shift = 8192
+    previous_data_point = 0
     for i, data_point in enumerate(clean_data):
         note_position = i/4
+
+        if(previous_data_point == 0.0 and data_point > 0.0):
+            pitch_bend_ceiling[0] = int(round(max_shift * random.uniform(-1.0, 1.0)))
+            pitch_bend_ceiling[1] = int(round(max_shift * random.uniform(-1.0, 1.0)))
+            pitch_bend_ceiling[2] = int(round(max_shift * random.uniform(-1.0, 1.0)))
+        elif(previous_data_point > 0 and data_point == 0.0): 
+            pitch_bend_ceiling = [0,0,0]
+
         ######## HIGH TONIC NOTE PITCHBEND #################### 
         #                          track, channel, time         , pitchWheelValue
-        midiObj.addPitchWheelEvent(0    , 0      , note_position, scale_and_limit(data_point))
-        midiObj.addPitchWheelEvent(1    , 0      , note_position, scale_and_limit(data_point))
-        midiObj.addPitchWheelEvent(2    , 0      , note_position, scale_and_limit(data_point))
+        midiObj.addPitchWheelEvent(0    , 0      , note_position, pitch_bend_ceiling[0])
+        midiObj.addPitchWheelEvent(1    , 0      , note_position, pitch_bend_ceiling[1])
+        midiObj.addPitchWheelEvent(2    , 0      , note_position, pitch_bend_ceiling[2])
+
+        previous_data_point = data_point
 
 
     ####################################################################
@@ -441,7 +422,7 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
     ]
 
 
-    midiObj = createMelody(melody_pitches1, melody_rhythm1, alert_data, midiObj, 3)
+    midiObj = createMelody(melody_pitches2, melody_rhythm2, alert_data, midiObj, 3)
     # midiObj = createMelody(melody_pitches2, melody_rhythm2, alert_data, midiObj, 3)
     # midiObj = createMelody(melody_pitches3, melody_rhythm3, alert_data, midiObj, 3)
 
@@ -461,6 +442,6 @@ if __name__ == "__main__":
     createDirectory("midiFiles")
     create_midi_with_melody(clean_data, 
                             alert_data,
-                            "melody1", 
+                            "melody2", 
                             False) 
 
