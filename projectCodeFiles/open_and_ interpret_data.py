@@ -302,7 +302,7 @@ def createMelody(melody_pitches, melody_rhythm, data, midiObj, track):
 
 
 
-def create_midi_with_melody(clean_data, alert_data, name, rhythm):
+def create_midi_with_melody(clean_data, alert_data, name, arpegiation):
     midiObj = MIDIFile(4)  # create one track
     midiObj.addTempo(0, 0, 150)
 
@@ -310,7 +310,7 @@ def create_midi_with_melody(clean_data, alert_data, name, rhythm):
     ##################  CREATE ARPEGGIATION  ########################### 
     ####################################################################
 
-    if(rhythm == True):    
+    if(arpegiation == True):    
         clean_rhythm_length = round(len(clean_data)/16)
         note_cutoff = 0.02
 
@@ -442,6 +442,6 @@ if __name__ == "__main__":
     createDirectory("midiFiles")
     create_midi_with_melody(clean_data, 
                             alert_data,
-                            "melody2", 
-                            False) 
+                            "melody2_with_arpeg", 
+                            True) 
 
